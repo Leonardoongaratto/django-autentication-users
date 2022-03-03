@@ -1,0 +1,10 @@
+@baseURL = http://127.0.0.1:9000
+
+###
+# @name authenticate
+POST {{baseURL}}/users/
+Content-Type: application/json
+{
+    "username": "leonardo",
+    "password": "123"
+}

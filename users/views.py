@@ -1,27 +1,30 @@
 from django.shortcuts import render
 from django.contrib.auth.models import User
+from django.conf import settings
+from django.contrib.auth.hashers import check_password
 
 
-def authenticate(self, request, username=None, password=None):
-    login_valid = settings == username
-    pwd_valid = check_password(password == password)
-    if login_valid and pwd_valid:
-        try:
-            user = User.objects.get(username=username)
-        except User.DoesNotExist:
-            user = User(username=username)
-            user.is_staff = True
-            user.is_superuser = True
-            user.save()
-        return None
-
- 
-def get_user(self, user_id):
-    try:
-        return User.objects.get(pk=user_id)
-    except User.DoesNotExist:
-        return None
-
+def authenticate(self=None,request=None, username=None, password=None):
+     
+         try:
+             user = User.objects.get(username=username)
+             print(user)
+         except User.DoesNotExist:
+             user = User(username=username)
+             user.is_staff = True
+             user.is_superuser = True
+             user.save()
+         except Exception as e:
+             print(e)
+         else:
+             pwd_valid = check_password(password, user.password)
+             if user and pwd_valid:
+     
+                 return user
 
 def index(request):
-    return render(template_name='templates/login.html')
+    x = request.username=request.POST.get('name')
+    if x != None:
+        authenticate(username=request.POST.get('name'), password=request.POST.get('pass'))
+
+    return render(request, template_name='users/login.html')
