@@ -1,6 +1,11 @@
+from django import views
 from django.urls import path
-from .views import authenticate,index
-from django.contrib.auth import views as auth_view
+from . import views
 urlpatterns = [
-    path('login/', index)
+    path('register/', views.register, name='register'),
+    path('login/', views.login, name='login'),
+    path('home/', views.home, name='home'),
+    path('logout/', views.logout_user, name='logout')
+
+
 ]

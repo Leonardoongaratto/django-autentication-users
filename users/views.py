@@ -1,30 +1,67 @@
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.contrib.auth.models import User
-from django.conf import settings
-from django.contrib.auth.hashers import check_password
+from django.contrib import messages
+from django.contrib.messages import constants
+from django.contrib import auth
+
+def register(request):
+    if request.method == 'GET':
+        if request.user.is_authenticated:
+            return redirect('/api/home')
+        return render(request, 'register.html')
+    elif request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        confirm_password = request.POST.get('confirm-password')
+
+        if not password == confirm_password:
+            messages.add_message(request, constants.ERROR, 'As senhas não coincidem')
+            return redirect('/api/register')
+
+        if len(username.strip()) == 0 or len(password.strip()) == 0:
+            messages.add_message(request, constants.ERROR, 'O username e a senha não podem estar vazios')
+            return redirect('/api/register')
+
+        user = User.objects.filter(username=username)
+
+        if user.exists():
+            messages.add_message(request, constants.ERROR, 'Usuario já existe')
+            return redirect('/api/register')
+
+        try:
+            user = User.objects.create_user(username=username, password=password)
+            user.save()
+
+            return redirect('/api/login')
+
+        except:
+            messages.add_message(request, constants.ERROR, 'Erro interno')
+            return redirect('/api/register')
+
+def login(request):
+    if request.method == 'GET':
+        if request.user.is_authenticated:
+            return redirect('/api/home')
+        return render(request, 'login.html')
+    elif request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+
+        user = auth.authenticate(username=username ,password=password)
+
+        if not user:
+            messages.add_message(request, constants.ERROR, 'Usuario ou senha inválidos')
+            return redirect('/api/login')
+        else:
+            auth.login(request, user)
+            return redirect('/api/home')
 
 
-def authenticate(self=None,request=None, username=None, password=None):
-     
-         try:
-             user = User.objects.get(username=username)
-             print(user)
-         except User.DoesNotExist:
-             user = User(username=username)
-             user.is_staff = True
-             user.is_superuser = True
-             user.save()
-         except Exception as e:
-             print(e)
-         else:
-             pwd_valid = check_password(password, user.password)
-             if user and pwd_valid:
-     
-                 return user
+def logout_user(request):
+    auth.logout(request)
+    return redirect('/api/login')
 
-def index(request):
-    x = request.username=request.POST.get('name')
-    if x != None:
-        authenticate(username=request.POST.get('name'), password=request.POST.get('pass'))
 
-    return render(request, template_name='users/login.html')
+def home(request):
+    users = User.objects.all().order_by('id')
+    return render(request, 'home.html', context={'user':users})
